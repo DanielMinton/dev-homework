@@ -30,7 +30,7 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
       const data = await getLatestAnalysis();
       setAnalysis(data);
     } catch {
-      // no analysis yet, that's fine
+      // no analysis yet
     }
   };
 
@@ -116,7 +116,6 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
     }, 2000);
   };
 
-  // hospitality category colors
   const getCategoryColor = (category: string | null) => {
     const colors: Record<string, string> = {
       room_service: "bg-orange-500/20 text-orange-300 border-orange-500/30",
@@ -148,11 +147,11 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Route Requests</CardTitle>
-          <CardDescription className="text-xs">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl">Route Requests</CardTitle>
+          <CardDescription>
             AI-powered department routing and prioritization
           </CardDescription>
         </CardHeader>
@@ -161,17 +160,16 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
             <Button
               onClick={handleAnalyze}
               disabled={loading || ticketCount === 0}
-              className="w-full h-9"
-              size="sm"
+              className="w-full"
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Analyzing...
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-3.5 w-3.5" />
+                  <Sparkles className="mr-2 h-4 w-4" />
                   Analyze Requests
                 </>
               )}
@@ -189,42 +187,44 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
             transition={{ duration: 0.2 }}
           >
             <Card className="shadow-sm">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4" />
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
                     Results
                   </CardTitle>
                   <Badge
                     variant="outline"
                     className={analysis.run.status === "complete"
-                      ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs"
-                      : "bg-amber-500/20 text-amber-300 border-amber-500/30 text-xs"
+                      ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                      : "bg-amber-500/20 text-amber-300 border-amber-500/30"
                     }
                   >
                     {analysis.run.status}
                   </Badge>
                 </div>
-                <CardDescription className="text-xs">
+                <CardDescription>
                   {analysis.run.ticketCount} requests analyzed
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 {analysis.run.summary && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="rounded-md bg-secondary/50 p-3 border border-border/50"
+                    className="rounded-lg bg-secondary/50 p-4 border border-border/50"
                   >
-                    <h4 className="font-medium mb-1.5 text-xs text-muted-foreground uppercase tracking-wide">Summary</h4>
-                    <p className="text-xs text-foreground/80 leading-relaxed">
+                    <h4 className="font-medium mb-2 text-sm text-muted-foreground uppercase tracking-wide">
+                      Summary
+                    </h4>
+                    <p className="text-sm text-foreground/90 leading-relaxed">
                       {analysis.run.summary}
                     </p>
                   </motion.div>
                 )}
 
                 {analysis.analyses.length > 0 && (
-                  <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                     {analysis.analyses.map((item, index) => (
                       <motion.div
                         key={item.id}
@@ -233,32 +233,40 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
                         transition={{ delay: index * 0.05 }}
                       >
                         <Accordion type="single" collapsible>
-                          <AccordionItem value="details" className="border rounded-md bg-secondary/30 px-3">
-                            <AccordionTrigger className="hover:no-underline py-2.5">
-                              <div className="flex items-start justify-between w-full gap-2 text-left">
-                                <span className="text-sm font-medium line-clamp-1 flex-1">
+                          <AccordionItem value="details" className="border rounded-lg bg-secondary/30 px-4">
+                            <AccordionTrigger className="hover:no-underline py-3">
+                              <div className="flex items-start justify-between w-full gap-3 text-left">
+                                <span className="font-medium leading-snug flex-1">
                                   {item.ticket.title}
                                 </span>
-                                <div className="flex gap-1.5 flex-shrink-0">
-                                  <Badge variant="outline" className={`${getCategoryColor(item.category)} text-[10px] px-1.5 py-0`}>
+                                <div className="flex gap-2 flex-shrink-0">
+                                  <Badge variant="outline" className={`${getCategoryColor(item.category)} text-xs`}>
                                     {formatCategory(item.category)}
                                   </Badge>
-                                  <Badge variant="outline" className={`${getPriorityStyle(item.priority)} text-[10px] px-1.5 py-0 uppercase`}>
+                                  <Badge variant="outline" className={`${getPriorityStyle(item.priority)} text-xs uppercase`}>
                                     {item.priority}
                                   </Badge>
                                 </div>
                               </div>
                             </AccordionTrigger>
-                            <AccordionContent className="pt-0 pb-3">
-                              <div className="space-y-2 text-xs">
+                            <AccordionContent className="pt-0 pb-4">
+                              <div className="space-y-3">
                                 <div>
-                                  <p className="text-muted-foreground mb-1 uppercase tracking-wide text-[10px]">Request</p>
-                                  <p className="text-foreground/80">{item.ticket.description}</p>
+                                  <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">
+                                    Request
+                                  </p>
+                                  <p className="text-sm text-foreground/90 leading-relaxed">
+                                    {item.ticket.description}
+                                  </p>
                                 </div>
                                 {item.notes && (
                                   <div>
-                                    <p className="text-muted-foreground mb-1 uppercase tracking-wide text-[10px]">Routing Notes</p>
-                                    <p className="text-foreground/80">{item.notes}</p>
+                                    <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wide">
+                                      Routing Notes
+                                    </p>
+                                    <p className="text-sm text-foreground/90 leading-relaxed">
+                                      {item.notes}
+                                    </p>
                                   </div>
                                 )}
                               </div>
@@ -271,8 +279,8 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
                 )}
 
                 {analysis.analyses.length === 0 && analysis.run.status === "complete" && (
-                  <div className="flex flex-col items-center justify-center py-6 text-center">
-                    <p className="text-xs text-muted-foreground">No analysis results</p>
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <p className="text-muted-foreground">No analysis results</p>
                   </div>
                 )}
               </CardContent>
