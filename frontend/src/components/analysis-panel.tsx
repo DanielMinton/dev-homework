@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { PriorityBadge } from "./priority-badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { analyzeTickets, getLatestAnalysis, AnalysisResponse } from "@/lib/api";
 import { useToast } from "./ui/use-toast";
-import { Loader2, Sparkles, AlertCircle } from "lucide-react";
+import { Loader2, Sparkles, BarChart3 } from "lucide-react";
 
 interface AnalysisPanelProps {
   ticketCount: number;
@@ -18,7 +17,7 @@ interface AnalysisPanelProps {
 
 export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelProps) {
   const [loading, setLoading] = useState(false);
-  const [polling, setPolling] = useState(false);
+  const [, setPolling] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const { toast } = useToast();
 
@@ -30,16 +29,16 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
     try {
       const data = await getLatestAnalysis();
       setAnalysis(data);
-    } catch (error) {
-      console.error("Failed to load analysis:", error);
+    } catch {
+      // no analysis yet, that's fine
     }
   };
 
   const handleAnalyze = async () => {
     if (ticketCount === 0) {
       toast({
-        title: "No Tickets",
-        description: "Please create some tickets before running analysis",
+        title: "No requests",
+        description: "Add some guest requests before analyzing",
         variant: "destructive",
       });
       return;
@@ -52,16 +51,16 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
       await analyzeTickets();
 
       toast({
-        title: "Analysis Started",
-        description: "Processing tickets with AI...",
+        title: "Analysis started",
+        description: "Processing requests...",
       });
 
       setPolling(true);
       pollForResults();
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
-        description: "Failed to start analysis. Please try again.",
+        description: "Failed to start analysis",
         variant: "destructive",
       });
       setLoading(false);
@@ -85,8 +84,8 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
           clearInterval(interval);
 
           toast({
-            title: "Analysis Complete",
-            description: `Successfully analyzed ${data.analyses.length} tickets`,
+            title: "Analysis complete",
+            description: `Routed ${data.analyses.length} requests`,
           });
         } else if (data.run?.status === "error") {
           setLoading(false);
@@ -94,13 +93,13 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
           clearInterval(interval);
 
           toast({
-            title: "Analysis Failed",
-            description: "An error occurred during analysis",
+            title: "Analysis failed",
+            description: "An error occurred",
             variant: "destructive",
           });
         }
-      } catch (error) {
-        console.error("Polling error:", error);
+      } catch {
+        // keep polling
       }
 
       if (attempts >= maxAttempts) {
@@ -110,24 +109,37 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
 
         toast({
           title: "Timeout",
-          description: "Analysis is taking longer than expected",
+          description: "Analysis taking longer than expected",
           variant: "destructive",
         });
       }
     }, 2000);
   };
 
+  // hospitality category colors
   const getCategoryColor = (category: string | null) => {
     const colors: Record<string, string> = {
-      billing: "bg-blue-100 text-blue-800 border-blue-200",
-      bug: "bg-red-100 text-red-800 border-red-200",
-      feature_request: "bg-purple-100 text-purple-800 border-purple-200",
-      account: "bg-orange-100 text-orange-800 border-orange-200",
-      technical_support: "bg-teal-100 text-teal-800 border-teal-200",
-      other: "bg-gray-100 text-gray-800 border-gray-200",
+      room_service: "bg-orange-500/20 text-orange-300 border-orange-500/30",
+      maintenance: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+      housekeeping: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+      front_desk: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+      concierge: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+      billing: "bg-slate-500/20 text-slate-300 border-slate-500/30",
+      noise_complaint: "bg-red-500/20 text-red-300 border-red-500/30",
+      amenities: "bg-teal-500/20 text-teal-300 border-teal-500/30",
+      vip_urgent: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+      other: "bg-zinc-500/20 text-zinc-300 border-zinc-500/30",
     };
-
     return colors[category || "other"] || colors.other;
+  };
+
+  const getPriorityStyle = (priority: string | null) => {
+    const styles: Record<string, string> = {
+      high: "bg-red-500/20 text-red-300 border-red-500/30",
+      medium: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+      low: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+    };
+    return styles[priority || "low"] || styles.low;
   };
 
   const formatCategory = (category: string | null) => {
@@ -136,136 +148,138 @@ export function AnalysisPanel({ ticketCount, onAnalysisStart }: AnalysisPanelPro
   };
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>AI Analysis</CardTitle>
-          <CardDescription>
-            Automatically categorize and prioritize support tickets
+    <div className="space-y-3">
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Route Requests</CardTitle>
+          <CardDescription className="text-xs">
+            AI-powered department routing and prioritization
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button
-            onClick={handleAnalyze}
-            disabled={loading || ticketCount === 0}
-            className="w-full"
-            size="lg"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Analyzing Tickets...
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-5 w-5" />
-                Analyze Tickets
-              </>
-            )}
-          </Button>
+          <motion.div whileTap={{ scale: 0.98 }}>
+            <Button
+              onClick={handleAnalyze}
+              disabled={loading || ticketCount === 0}
+              className="w-full h-9"
+              size="sm"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-3.5 w-3.5" />
+                  Analyze Requests
+                </>
+              )}
+            </Button>
+          </motion.div>
         </CardContent>
       </Card>
 
-      {analysis?.run && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Analysis Results
-                {analysis.run.status === "complete" && (
-                  <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                    Complete
+      <AnimatePresence mode="wait">
+        {analysis?.run && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4" />
+                    Results
+                  </CardTitle>
+                  <Badge
+                    variant="outline"
+                    className={analysis.run.status === "complete"
+                      ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs"
+                      : "bg-amber-500/20 text-amber-300 border-amber-500/30 text-xs"
+                    }
+                  >
+                    {analysis.run.status}
                   </Badge>
-                )}
-                {analysis.run.status === "pending" && (
-                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                    Pending
-                  </Badge>
-                )}
-              </CardTitle>
-              <CardDescription>
-                Analyzed {analysis.run.ticketCount} tickets
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {analysis.run.summary && (
-                <div className="rounded-lg bg-muted p-4">
-                  <h4 className="font-semibold mb-2 text-sm">Summary</h4>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {analysis.run.summary}
-                  </p>
                 </div>
-              )}
+                <CardDescription className="text-xs">
+                  {analysis.run.ticketCount} requests analyzed
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {analysis.run.summary && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="rounded-md bg-secondary/50 p-3 border border-border/50"
+                  >
+                    <h4 className="font-medium mb-1.5 text-xs text-muted-foreground uppercase tracking-wide">Summary</h4>
+                    <p className="text-xs text-foreground/80 leading-relaxed">
+                      {analysis.run.summary}
+                    </p>
+                  </motion.div>
+                )}
 
-              {analysis.analyses.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm">Ticket Analysis</h4>
-                  {analysis.analyses.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <Card className="border-l-4" style={{ borderLeftColor: item.priority === "high" ? "#ef4444" : item.priority === "medium" ? "#f59e0b" : "#10b981" }}>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <CardTitle className="text-base">{item.ticket.title}</CardTitle>
-                            <div className="flex gap-2 flex-shrink-0">
-                              <PriorityBadge priority={item.priority} />
-                            </div>
-                          </div>
-                          <div className="flex gap-2 mt-2">
-                            <Badge className={getCategoryColor(item.category)}>
-                              {formatCategory(item.category)}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <Accordion type="single" collapsible>
-                            <AccordionItem value="details" className="border-0">
-                              <AccordionTrigger className="text-sm hover:no-underline">
-                                View Details
-                              </AccordionTrigger>
-                              <AccordionContent>
-                                <div className="space-y-3 text-sm">
-                                  <div>
-                                    <p className="font-medium mb-1">Original Description:</p>
-                                    <p className="text-muted-foreground">{item.ticket.description}</p>
-                                  </div>
-                                  {item.notes && (
-                                    <div>
-                                      <p className="font-medium mb-1">Analysis Notes:</p>
-                                      <p className="text-muted-foreground">{item.notes}</p>
-                                    </div>
-                                  )}
+                {analysis.analyses.length > 0 && (
+                  <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                    {analysis.analyses.map((item, index) => (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <Accordion type="single" collapsible>
+                          <AccordionItem value="details" className="border rounded-md bg-secondary/30 px-3">
+                            <AccordionTrigger className="hover:no-underline py-2.5">
+                              <div className="flex items-start justify-between w-full gap-2 text-left">
+                                <span className="text-sm font-medium line-clamp-1 flex-1">
+                                  {item.ticket.title}
+                                </span>
+                                <div className="flex gap-1.5 flex-shrink-0">
+                                  <Badge variant="outline" className={`${getCategoryColor(item.category)} text-[10px] px-1.5 py-0`}>
+                                    {formatCategory(item.category)}
+                                  </Badge>
+                                  <Badge variant="outline" className={`${getPriorityStyle(item.priority)} text-[10px] px-1.5 py-0 uppercase`}>
+                                    {item.priority}
+                                  </Badge>
                                 </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          </Accordion>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-0 pb-3">
+                              <div className="space-y-2 text-xs">
+                                <div>
+                                  <p className="text-muted-foreground mb-1 uppercase tracking-wide text-[10px]">Request</p>
+                                  <p className="text-foreground/80">{item.ticket.description}</p>
+                                </div>
+                                {item.notes && (
+                                  <div>
+                                    <p className="text-muted-foreground mb-1 uppercase tracking-wide text-[10px]">Routing Notes</p>
+                                    <p className="text-foreground/80">{item.notes}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
 
-              {analysis.analyses.length === 0 && analysis.run.status === "complete" && (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-sm text-muted-foreground">
-                    No analysis results available
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+                {analysis.analyses.length === 0 && analysis.run.status === "complete" && (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <p className="text-xs text-muted-foreground">No analysis results</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
