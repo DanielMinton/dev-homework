@@ -59,25 +59,24 @@ export function TicketForm({ onTicketCreated }: TicketFormProps) {
 
   return (
     <Card className="shadow-sm">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">New Request</CardTitle>
-        <CardDescription className="text-xs">Log a guest request for analysis</CardDescription>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl">New Request</CardTitle>
+        <CardDescription>Log a guest request for analysis</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="title" className="text-xs">Summary</Label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Summary</Label>
             <Input
               id="title"
               placeholder="Brief summary of guest request"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={loading}
-              className="h-9 text-sm"
             />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="description" className="text-xs">Details</Label>
+          <div className="space-y-2">
+            <Label htmlFor="description">Details</Label>
             <Textarea
               id="description"
               placeholder="Include room number, guest details, and specific needs"
@@ -85,19 +84,19 @@ export function TicketForm({ onTicketCreated }: TicketFormProps) {
               onChange={(e) => setDescription(e.target.value)}
               disabled={loading}
               rows={3}
-              className="text-sm resize-none"
+              className="resize-none"
             />
           </div>
           <motion.div whileTap={{ scale: 0.98 }}>
-            <Button type="submit" disabled={loading} className="w-full h-9" size="sm">
+            <Button type="submit" disabled={loading} className="w-full">
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Submitting...
                 </>
               ) : (
                 <>
-                  <Plus className="mr-2 h-3.5 w-3.5" />
+                  <Plus className="mr-2 h-4 w-4" />
                   Add Request
                 </>
               )}
