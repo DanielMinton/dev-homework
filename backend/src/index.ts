@@ -14,7 +14,7 @@ app.use("/api/tickets", ticketsRouter);
 app.use("/api/analyze", analyzeRouter);
 app.use("/api/analysis", analysisRouter);
 
-app.get("/health", (req, res) => {
+app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 

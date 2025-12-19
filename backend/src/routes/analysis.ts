@@ -5,7 +5,7 @@ import { eq, desc } from "drizzle-orm";
 
 const router = Router();
 
-router.get("/latest", async (req: Request, res: Response): Promise<void> => {
+router.get("/latest", async (_req: Request, res: Response): Promise<void> => {
   try {
     const [latestRun] = await db.select()
       .from(analysisRuns)

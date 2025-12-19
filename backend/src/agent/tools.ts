@@ -1,5 +1,6 @@
 import { db } from "../db";
 import { analysisRuns } from "../db/schema";
+import { eq } from "drizzle-orm";
 import { createAnalysisGraph } from "./graph";
 
 export async function runAnalysis(ticketIds?: number[]): Promise<number> {
@@ -22,7 +23,7 @@ export async function runAnalysis(ticketIds?: number[]): Promise<number> {
       });
     } catch (error) {
       console.error("Error running analysis:", error);
-      await db.update(analysisRuns).set({ status: "error" }).where(analysisRuns.id.eq(run.id));
+      await db.update(analysisRuns).set({ status: "error" }).where(eq(analysisRuns.id, run.id));
     }
   }, 0);
 

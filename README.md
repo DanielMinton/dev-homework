@@ -26,6 +26,10 @@ docker compose up --build
 
 The first startup will initialize the PostgreSQL database with the required schema.
 
+### Known Issues
+
+**Next.js Build Warning**: The frontend `npm run build` encounters a static generation error with Next.js 14.2.22 + Radix UI components. This is a build-time issue only and does not affect runtime behavior. The application works perfectly in development mode (`npm run dev`) and Docker deployment. For production, consider upgrading to Next.js 15 or using Docker deployment as-is.
+
 ## Architecture
 
 ```

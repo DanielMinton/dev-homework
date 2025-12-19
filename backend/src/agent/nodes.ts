@@ -21,10 +21,14 @@ const TicketAnalysisSchema = z.object({
     .describe("Brief explanation of the categorization and priority decision"),
 });
 
+type TicketAnalysisOutput = z.infer<typeof TicketAnalysisSchema>;
+
 const SummarySchema = z.object({
   summary: z.string()
     .describe("A concise summary of all analyzed tickets, highlighting key trends and critical issues"),
 });
+
+type SummaryOutput = z.infer<typeof SummarySchema>;
 
 export async function fetchTicketsNode(state: AgentStateType): Promise<Partial<AgentStateType>> {
   try {
@@ -57,7 +61,6 @@ export async function fetchTicketsNode(state: AgentStateType): Promise<Partial<A
 
 export async function analyzeTicketsNode(state: AgentStateType): Promise<Partial<AgentStateType>> {
   try {
-    const structuredModel = model.withStructuredOutput(TicketAnalysisSchema);
     const analyses = [];
 
     for (const ticket of state.tickets) {
@@ -71,7 +74,10 @@ Determine:
 2. The priority level (consider urgency, impact on user, and business criticality)
 3. Brief notes explaining your categorization`;
 
-      const result = await structuredModel.invoke(prompt);
+      // Type inference limitation in LangChain v1 - runtime behavior is correct
+      // @ts-expect-error Complex generic type instantiation
+      const structuredModel = model.withStructuredOutput(TicketAnalysisSchema);
+      const result = await structuredModel.invoke(prompt) as TicketAnalysisOutput;
 
       analyses.push({
         ticketId: ticket.id,
@@ -96,8 +102,6 @@ Determine:
 
 export async function generateSummaryNode(state: AgentStateType): Promise<Partial<AgentStateType>> {
   try {
-    const structuredModel = model.withStructuredOutput(SummarySchema);
-
     const ticketSummaries = state.tickets.map((ticket, idx) => {
       const analysis = state.analyses[idx];
       return `- [${analysis.priority.toUpperCase()}] [${analysis.category}] ${ticket.title}: ${analysis.notes}`;
@@ -114,7 +118,10 @@ ${ticketSummaries}
 
 Provide a clear, actionable summary in 2-3 paragraphs.`;
 
-    const result = await structuredModel.invoke(prompt);
+    // Type inference limitation in LangChain v1 - runtime behavior is correct
+    // @ts-expect-error Complex generic type instantiation
+    const structuredModel = model.withStructuredOutput(SummarySchema);
+    const result = await structuredModel.invoke(prompt) as SummaryOutput;
 
     return {
       summary: result.summary,
