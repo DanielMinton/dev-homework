@@ -381,10 +381,33 @@ Test the system with these example tickets:
 ]
 ```
 
+## Time Estimate
+
+**Estimated time spent:** ~2.5 hours
+
+### Breakdown
+- Project setup & Docker configuration: 20 min
+- Database schema & Drizzle ORM: 15 min
+- LangGraph agent implementation: 45 min
+- Backend API endpoints: 20 min
+- Frontend UI (Next.js + shadcn): 40 min
+- Testing & debugging: 15 min
+- Documentation: 15 min
+
+### What I'd do with more time
+- Add WebSocket support for real-time analysis updates
+- Implement comprehensive test suite (unit + integration)
+- Add retry logic with exponential backoff for OpenAI calls
+- Build admin dashboard with historical analysis trends
+- Add rate limiting and request validation middleware
+- Implement caching layer for frequently accessed data
+
 ## License
 
 MIT
 
-## Contact
+## Author
 
-For questions or feedback about this implementation, please open an issue in the repository.
+**Daniel Minton**
+- GitHub: [@DanielMinton](https://github.com/DanielMinton)
+- Handle: @TheModernOpossum
