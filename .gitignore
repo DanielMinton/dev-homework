@@ -39,12 +39,26 @@ lerna-debug.log*
 postgres_data/
 *.db
 
+# AI Tools
+.claude/
+.claude.json
+.cursor/
+
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+
+# Exports
+exports/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
 
 # Misc
 .turbo
