@@ -12,20 +12,31 @@ const model = new ChatOpenAI({
   apiKey: env.OPENAI_API_KEY,
 });
 
+// hospitality-focused categories for guest request routing
 const TicketAnalysisSchema = z.object({
-  category: z.enum(["billing", "bug", "feature_request", "account", "technical_support", "other"])
-    .describe("The category that best describes this support ticket"),
+  category: z.enum([
+    "room_service",
+    "maintenance",
+    "housekeeping",
+    "front_desk",
+    "concierge",
+    "billing",
+    "noise_complaint",
+    "amenities",
+    "vip_urgent",
+    "other"
+  ]).describe("The hotel department best suited to handle this request"),
   priority: z.enum(["low", "medium", "high"])
-    .describe("The priority level based on urgency and impact"),
+    .describe("Priority based on guest impact, safety concerns, and urgency"),
   notes: z.string()
-    .describe("Brief explanation of the categorization and priority decision"),
+    .describe("Brief analysis and recommended action for staff"),
 });
 
 type TicketAnalysisOutput = z.infer<typeof TicketAnalysisSchema>;
 
 const SummarySchema = z.object({
   summary: z.string()
-    .describe("A concise summary of all analyzed tickets, highlighting key trends and critical issues"),
+    .describe("Executive summary of guest requests with department routing insights"),
 });
 
 type SummaryOutput = z.infer<typeof SummarySchema>;
@@ -64,18 +75,18 @@ export async function analyzeTicketsNode(state: AgentStateType): Promise<Partial
     const analyses = [];
 
     for (const ticket of state.tickets) {
-      const prompt = `Analyze the following support ticket and categorize it appropriately.
+      const prompt = `You are a hotel operations AI assistant. Analyze this guest request and route it to the appropriate department.
 
-Title: ${ticket.title}
-Description: ${ticket.description}
+Request: ${ticket.title}
+Details: ${ticket.description}
 
-Determine:
-1. The category that best fits this ticket
-2. The priority level (consider urgency, impact on user, and business criticality)
-3. Brief notes explaining your categorization`;
+Consider:
+1. Which hotel department should handle this (room_service, maintenance, housekeeping, front_desk, concierge, billing, noise_complaint, amenities, vip_urgent, or other)
+2. Priority level based on guest impact and urgency (VIP mentions, safety issues, or time-sensitive requests = high)
+3. Brief notes on recommended handling approach`;
 
-      // Type inference limitation in LangChain v1 - runtime behavior is correct
-      // @ts-expect-error Complex generic type instantiation
+      // langchain type inference gets confused here but runtime works fine
+      // @ts-expect-error deep type instantiation limit
       const structuredModel = model.withStructuredOutput(TicketAnalysisSchema);
       const result = await structuredModel.invoke(prompt) as TicketAnalysisOutput;
 
@@ -107,19 +118,18 @@ export async function generateSummaryNode(state: AgentStateType): Promise<Partia
       return `- [${analysis.priority.toUpperCase()}] [${analysis.category}] ${ticket.title}: ${analysis.notes}`;
     }).join("\n");
 
-    const prompt = `You are analyzing a batch of support tickets. Generate a concise executive summary highlighting:
-- Overall trends in ticket categories
-- Distribution of priority levels
-- Any critical issues requiring immediate attention
-- Key insights for the support team
+    const prompt = `You are a hotel operations manager reviewing guest requests. Generate a brief executive summary highlighting:
+- Department workload distribution
+- High-priority items needing immediate attention
+- Any patterns or recurring issues
+- Recommended staffing adjustments if needed
 
-Analyzed Tickets:
+Analyzed Requests:
 ${ticketSummaries}
 
-Provide a clear, actionable summary in 2-3 paragraphs.`;
+Keep it concise - 2-3 short paragraphs max.`;
 
-    // Type inference limitation in LangChain v1 - runtime behavior is correct
-    // @ts-expect-error Complex generic type instantiation
+    // @ts-expect-error deep type instantiation limit
     const structuredModel = model.withStructuredOutput(SummarySchema);
     const result = await structuredModel.invoke(prompt) as SummaryOutput;
 
