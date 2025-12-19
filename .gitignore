@@ -60,5 +60,9 @@ __pycache__/
 .venv/
 venv/
 
+# Deployment
+Procfile
+railway.toml
+
 # Misc
 .turbo
