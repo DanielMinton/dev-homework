@@ -72,9 +72,11 @@ export async function fetchTicketsNode(state: AgentStateType): Promise<Partial<A
 
 export async function analyzeTicketsNode(state: AgentStateType): Promise<Partial<AgentStateType>> {
   try {
-    const analyses = [];
+    // @ts-expect-error deep type instantiation limit
+    const structuredModel = model.withStructuredOutput(TicketAnalysisSchema);
 
-    for (const ticket of state.tickets) {
+    // Process all tickets in parallel for much faster analysis
+    const analysisPromises = state.tickets.map(async (ticket) => {
       const prompt = `You are a hotel operations AI assistant. Analyze this guest request and route it to the appropriate department.
 
 Request: ${ticket.title}
@@ -85,18 +87,17 @@ Consider:
 2. Priority level based on guest impact and urgency (VIP mentions, safety issues, or time-sensitive requests = high)
 3. Brief notes on recommended handling approach`;
 
-      // langchain type inference gets confused here but runtime works fine
-      // @ts-expect-error deep type instantiation limit
-      const structuredModel = model.withStructuredOutput(TicketAnalysisSchema);
       const result = await structuredModel.invoke(prompt) as TicketAnalysisOutput;
 
-      analyses.push({
+      return {
         ticketId: ticket.id,
         category: result.category,
         priority: result.priority,
         notes: result.notes,
-      });
-    }
+      };
+    });
+
+    const analyses = await Promise.all(analysisPromises);
 
     return {
       analyses,
@@ -156,14 +157,17 @@ export async function persistResultsNode(state: AgentStateType): Promise<Partial
       })
       .where(eq(analysisRuns.id, state.runId));
 
-    for (const analysis of state.analyses) {
-      await db.insert(ticketAnalysis).values({
-        analysisRunId: state.runId,
-        ticketId: analysis.ticketId,
-        category: analysis.category,
-        priority: analysis.priority,
-        notes: analysis.notes,
-      });
+    // Batch insert all analyses at once
+    if (state.analyses.length > 0) {
+      await db.insert(ticketAnalysis).values(
+        state.analyses.map(analysis => ({
+          analysisRunId: state.runId,
+          ticketId: analysis.ticketId,
+          category: analysis.category,
+          priority: analysis.priority,
+          notes: analysis.notes,
+        }))
+      );
     }
 
     return {
