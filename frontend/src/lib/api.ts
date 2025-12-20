@@ -94,3 +94,54 @@ export async function getAnalysis(runId: number): Promise<AnalysisResponse> {
 
   return response.json();
 }
+
+export async function updateTicket(
+  id: number,
+  data: { title: string; description: string },
+  credentials: { username: string; password: string }
+): Promise<{ success: boolean; ticket?: Ticket }> {
+  const basicAuth = btoa(`${credentials.username}:${credentials.password}`);
+
+  const response = await fetch(`${API_URL}/api/tickets/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Basic ${basicAuth}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (response.status === 401) {
+    throw new Error("Invalid credentials");
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to update ticket");
+  }
+
+  return response.json();
+}
+
+export async function deleteTicket(
+  id: number,
+  credentials: { username: string; password: string }
+): Promise<{ success: boolean }> {
+  const basicAuth = btoa(`${credentials.username}:${credentials.password}`);
+
+  const response = await fetch(`${API_URL}/api/tickets/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": `Basic ${basicAuth}`,
+    },
+  });
+
+  if (response.status === 401) {
+    throw new Error("Invalid credentials");
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to delete ticket");
+  }
+
+  return response.json();
+}

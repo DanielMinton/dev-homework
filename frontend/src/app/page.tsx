@@ -86,7 +86,7 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <motion.div className="space-y-4 sm:space-y-6" variants={itemVariants}>
             <TicketForm onTicketCreated={handleTicketCreated} />
-            <TicketList tickets={tickets} loading={loading} />
+            <TicketList tickets={tickets} loading={loading} onTicketUpdated={loadTickets} />
           </motion.div>
 
           <motion.div variants={itemVariants}>
