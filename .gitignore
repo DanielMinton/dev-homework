@@ -61,8 +61,7 @@ __pycache__/
 venv/
 
 # Deployment
-Procfile
-railway.toml
+# (railway.toml and Procfile are tracked for deployment config)
 
 # Misc
 .turbo
