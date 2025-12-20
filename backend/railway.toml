@@ -3,11 +3,13 @@ builder = "nixpacks"
 buildCommand = "npm ci && NODE_OPTIONS='--max-old-space-size=4096' npm run build"
 
 [deploy]
-startCommand = "npm start"
+startCommand = "node dist/index.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+numReplicas = 1
 
-[service]
-internalPort = 3001
+[[deploy.ports]]
+port = 3001
+protocol = "TCP"

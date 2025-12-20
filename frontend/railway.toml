@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm ci && npm run build"
+buildCommand = "npm ci --legacy-peer-deps && npm run build"
 
 [deploy]
 startCommand = "npm start"
@@ -8,6 +8,8 @@ healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+numReplicas = 1
 
-[service]
-internalPort = 3000
+[[deploy.ports]]
+port = 3000
+protocol = "TCP"
