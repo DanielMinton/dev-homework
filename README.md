@@ -1,6 +1,6 @@
 # Guest Request Analyst
 
-AI-powered guest request routing for hospitality operations. Uses LangGraph.js to automatically categorize incoming requests and route them to the appropriate hotel department.
+Automated guest request routing for hospitality operations. Uses LangGraph.js to automatically categorize incoming requests and route them to the appropriate hotel department.
 
 ## Quick Start
 
@@ -130,14 +130,25 @@ python export_analysis.py --format csv
 
 ## Tech Stack
 
-| Tech | Why |
-|------|-----|
+### Languages
+- **TypeScript** (34 files) - Frontend and backend type safety
+- **Python** (3 files) - Data seeding and export utilities
+- **JavaScript** (1 file) - Build configuration
+- **SQL** (1 file) - Database schema
+- **CSS** (1 file) - Global styles
+- **Shell** (1 file) - Docker entrypoint script
+
+### Frameworks & Libraries
+| Tech | Purpose |
+|------|---------|
 | **LangGraph.js** | Explicit state machine for agentic workflows, self-documenting |
 | **gpt-4o-mini** | Fast, cheap, excellent at categorization |
 | **Drizzle ORM** | Type-safe queries, lightweight, great DX |
 | **Next.js 14** | App router, server components, TypeScript |
 | **shadcn/ui** | Accessible components, copy-paste philosophy |
 | **Framer Motion** | Declarative animations |
+| **Express** | Backend API server |
+| **PostgreSQL** | Relational database for ticket storage |
 
 ## Project Structure
 
